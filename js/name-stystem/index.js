@@ -9,7 +9,7 @@ const GITHUB_REPO = "web-msg-public-data";
 const BRANCH = "main";
 const GITHUB_TOKEN =
   process.env.GH_TOKEN ||
-  fs.readFileSync("gh.token").toString("utf-8") ||
+  fs.readFileSync("./gh.token").toString("utf-8") ||
   "set your token"; // <--- Sicher speichern, z. B. via ENV
 
 // === Hilfsfunktionen ===
