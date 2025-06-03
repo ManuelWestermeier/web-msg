@@ -1,20 +1,18 @@
 #include <WiFi.h>
-#include "./libs/GitHubClient.h"
+#include <GitHubClient.h>
 
-char *ssid;
-char *password;
+const char *ssid = "YOUR_SSID";
+const char *password = "YOUR_WIFI_PASSWORD";
 
 // Replace with your GitHub Personal Access Token (must have repo scopes)
-String GITHUB_TOKEN;
-
-#include "./secrets.h"
+static const String GITHUB_TOKEN = "ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
 GitHubClient gh;
 
 void setup()
 {
   Serial.begin(115200);
-  delay(500);
+  delay(1000);
 
   WiFi.begin(ssid, password);
   Serial.print("Connecting to Wi-Fi");

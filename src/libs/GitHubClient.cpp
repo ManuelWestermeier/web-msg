@@ -236,9 +236,9 @@ bool GitHubClient::_request(const String &method,
                             int &responseCode,
                             String &responseBody)
 {
+    // Must be WiFiClientSecure to perform TLS. We disable cert check for simplicity:
     WiFiClientSecure client;
-    // In production, load the root CA here. For simplicity, we skip ownership of CA validation:
-    client.setCACert(nullptr);
+    client.setInsecure(); // <– no CA validation (for testing only)
 
     HTTPClient https;
     String fullURL = String("https://") + GITHUB_HOST + url;
@@ -334,7 +334,7 @@ bool GitHubClient::_getSha(const String &path, String &shaOut)
 String GitHubClient::_base64Encode(const String &plain)
 {
     size_t ilen = plain.length();
-    // Calculate required output buffer size: 4 * ((ilen+2)/3)
+    // Calculate required output buffer size: 4 * ((ilen+2)/3) + 1
     size_t buf_len = 4 * ((ilen + 2) / 3) + 1;
     unsigned char *outBuf = (unsigned char *)malloc(buf_len);
     if (!outBuf)
@@ -363,7 +363,7 @@ String GitHubClient::_base64Encode(const String &plain)
 String GitHubClient::_base64Decode(const String &b64)
 {
     size_t ilen = b64.length();
-    // Rough output buffer size: (ilen * 3) / 4
+    // Rough output buffer size: (ilen * 3) / 4 + 1
     size_t buf_len = (ilen * 3) / 4 + 1;
     unsigned char *outBuf = (unsigned char *)malloc(buf_len);
     if (!outBuf)
