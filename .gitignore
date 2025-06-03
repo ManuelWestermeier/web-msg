@@ -6,3 +6,4 @@
 gh.token
 node_modules/
 .env
+src/secrets.h

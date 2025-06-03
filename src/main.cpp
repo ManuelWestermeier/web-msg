@@ -1,11 +1,13 @@
 #include <WiFi.h>
 #include "./libs/GitHubClient.h"
 
-const char *ssid = "YOUR_SSID";
-const char *password = "YOUR_WIFI_PASSWORD";
+char *ssid;
+char *password;
 
 // Replace with your GitHub Personal Access Token (must have repo scopes)
-const String GITHUB_TOKEN = "ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+String GITHUB_TOKEN;
+
+#include "./secrets.h"
 
 GitHubClient gh;
 
