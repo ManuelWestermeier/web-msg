@@ -2,8 +2,9 @@ import net from "net";
 import http from "http";
 import { performance } from "perf_hooks";
 
-const mode = process.argv[2] || "tcp"; // 'http' or 'tcp'
+const mode = process.argv[2] || "http"; // 'http' or 'tcp'
 const targetHost = "192.168.178.133";
+const targetPath = "/send";
 const targetPort = 80;
 const maxClients = 4;
 const timeoutMs = 0;
@@ -52,7 +53,12 @@ const testHttpConnection = (i) => {
   return new Promise((resolve) => {
     const start = performance.now();
     const req = http.get(
-      { hostname: targetHost, port: targetPort, path: "/", timeout: timeoutMs },
+      {
+        hostname: targetHost,
+        port: targetPort,
+        path: targetPath,
+        timeout: timeoutMs,
+      },
       (res) => {
         res.on("data", () => {});
         res.on("end", () => {
