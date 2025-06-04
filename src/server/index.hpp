@@ -4,6 +4,8 @@
 #include <ESPAsyncWebServer.h>
 #include "./init.hpp"
 
+#include "../get-public-ip.hpp"
+
 struct WebMsgServer
 {
     GitHubClient gh;
@@ -18,8 +20,9 @@ struct WebMsgServer
         Serial.println("http://" + WiFi.localIP().toString() + (serverPort == 80 ? "" : +":" + String(serverPort)));
         gh = initGH(GITHUB_TOKEN);
 
-        server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-                  { request->send(200, "text/plain", "Hello from ESP32 HTTP Server!"); });
+        server.on("/send", HTTP_GET, [](AsyncWebServerRequest *request) { //
+            request->send(200, "text/plain", getPublicIP());
+        });
 
         server.begin();
     }
