@@ -15,7 +15,7 @@ struct WebMsgServer
 
     void init(const String &GITHUB_TOKEN = "")
     {
-        Serial.println("http://" + WiFi.localIP().toString() + serverPort == 80 ? "" : +":" + String(serverPort));
+        Serial.println("http://" + WiFi.localIP().toString() + (serverPort == 80 ? "" : +":" + String(serverPort)));
         gh = initGH(GITHUB_TOKEN);
 
         server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
