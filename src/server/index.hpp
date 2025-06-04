@@ -15,13 +15,12 @@ struct WebMsgServer
 
     void init(const String &GITHUB_TOKEN = "")
     {
-        gh = initGH(GITHUB_TOKEN); // KEIN `*` mehr – sicheres Copy/Move
-
-        // WiFi muss bereits verbunden sein!
+        Serial.println("http://" + WiFi.localIP().toString() + ":" + String(serverPort));
+        gh = initGH(GITHUB_TOKEN);
+        
         server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
                   { request->send(200, "text/plain", "Hello from ESP32 HTTP Server!"); });
-
+                  
         server.begin();
-        Serial.println("http://" + WiFi.localIP().toString() + ":" + String(serverPort));
     }
 };
