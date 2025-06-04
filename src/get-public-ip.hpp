@@ -11,7 +11,6 @@ String getPublicIP()
     {
         String ip = http.getString();
         http.end();
-        Serial.println(ip);
         return ip;
     }
     else
