@@ -2,6 +2,10 @@
 
 #include "./secrets.h"
 
+#include "./server/index.hpp"
+
+WebMsgServer app(80);
+
 void setup()
 {
   Serial.begin(115200);
@@ -15,6 +19,8 @@ void setup()
     Serial.print(".");
   }
   Serial.println("\nWi-Fi connected.");
+
+  app.init(GITHUB_TOKEN);
 }
 
 void loop()

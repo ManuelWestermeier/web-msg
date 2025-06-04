@@ -1,10 +1,9 @@
 #pragma once
 
 #include <Arduino.h>
-
 #include "../libs/GitHubClient.h"
 
-const GitHubClient &initGH(const String &GITHUB_TOKEN = "")
+GitHubClient initGH(const String &GITHUB_TOKEN = "")
 {
     GitHubClient gh;
 
@@ -16,9 +15,9 @@ const GitHubClient &initGH(const String &GITHUB_TOKEN = "")
             delay(1000);
         }
     }
-    Serial.printf("✅ Logged in as: %s\n", gh.getUsername().c_str());
 
-    // Ensure “web-msg-data” repo exists (public)
+    Serial.printf("✅ Logged in als: %s\n", gh.getUsername().c_str());
+
     if (gh.createRepoIfNotExists("web-msg-data", true))
     {
         Serial.println("✅ Repo web-msg-data ready.");
@@ -32,5 +31,5 @@ const GitHubClient &initGH(const String &GITHUB_TOKEN = "")
         }
     }
 
-    return gh;
+    return gh; // Rückgabe per Wert (copy oder move)
 }
