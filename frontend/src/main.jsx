@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './app.jsx'
-import { registerServiceWorker } from './registerServiceWorker.js'
+import registerServiceWorker  from './register-service-worker.js'
 
 import "./index.css"
 
