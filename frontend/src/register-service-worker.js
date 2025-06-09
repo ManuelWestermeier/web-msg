@@ -1,19 +1,19 @@
-import { Workbox } from 'workbox-window'
+import { Workbox } from "workbox-window";
 
 export default function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    const wb = new Workbox('/sw.js')
+  if ("serviceWorker" in navigator) {
+    const wb = new Workbox("/sw.js");
 
-    wb.addEventListener('waiting', () => {
+    wb.addEventListener("waiting", () => {
       // Immediately skip waiting and activate new service worker
-      wb.messageSW({ type: 'SKIP_WAITING' })
-    })
+      wb.messageSW({ type: "SKIP_WAITING" });
+    });
 
-    wb.addEventListener('controlling', () => {
+    wb.addEventListener("controlling", () => {
       // New service worker has taken control, reload the page
-      window.location.reload()
-    })
+      window.location.reload();
+    });
 
-    wb.register()
+    wb.register();
   }
 }
