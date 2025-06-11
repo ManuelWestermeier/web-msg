@@ -45,7 +45,7 @@ fetch store (https://raw.githubusercontent.com/{MESSAGE_USER}/web-msg-messages/r
 
 => POST http://{S_IP}/send `{Server1}|{POCKET.SIGN}`
 
-## RECEIVE_SERVER_SIDE
+## RECEIVER_SERVER_SIDE
 
 ### 5. validate pocket
 
@@ -58,11 +58,27 @@ U_PK = fetch (https://raw.githubusercontent.com/{Server1}/web-msg-data/refs/head
 (VALIDATE IT TOO (Server1.pk...))
 
 VALIDATE THE PROOF OF WORK (
-    HASH THE POCKET => CHECK 10 zeros on start
+HASH THE POCKET => CHECK 10 zeros on start
 )
 
 VALITADTE THE SIGN (
-    HASH THE FULL POCKET => VALIDATE WITH SENDER PUBLIC KEY FROM U_PK
+HASH THE FULL POCKET => VALIDATE WITH SENDER PUBLIC KEY FROM U_PK
 )
 
-if all is good append the pocket identifyer (`{Server1}|{POCKET.SIGN}`) to the messages list on (https://raw.githubusercontent.com/{Server2}/web-msg-data/refs/heads/main/user/{User1}/messages-list.txt) if the 
+if all is good append the pocket identifyer (`{Server1}|{POCKET.SIGN}`) to the messages list on (https://raw.githubusercontent.com/{Server2}/web-msg-data/refs/heads/main/user/{User1}/messages-list.txt) if the RANDOM_ID isn't in the list.
+
+SEND THE CLIENT THE PUSH NOTIFYCATION
+
+## RECEIVE_CLIENT_SIDE
+
+### 6. RECEAVE / Decrypt
+
+READS ALL MESSAGES
+
+FOREACH:
+
+VALIDATES THE POCKET.
+
+DECRYPTE THE POCKET.
+
+SHOW THE POCKET
