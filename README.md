@@ -1,84 +1,141 @@
-# WEB MSG
+WEB MSG
+=======
 
-# User1@Server1 wants to send "HELLO WORLD" to User2@Server2
+Ein dezentrales, verschlüsseltes Nachrichtensystem auf Basis von GitHub-Repositories.
 
-## SEND_CLIENT_SIDE
+Beispiel
+--------
 
-### 1. Get User2@Server2 public data (server+client)
+**User1@Server1** will die Nachricht `"HELLO WORLD"` an **User2@Server2** senden.
 
-SEND_CLIENT_SIDE:
+* * *
 
-S_PK = fetch (https://raw.githubusercontent.com/ManuelWestermeier/web-msg-data/refs/heads/main/pk.txt)
+SEND\_CLIENT\_SIDE
+------------------
 
-S_IP = fetch (https://raw.githubusercontent.com/ManuelWestermeier/web-msg-data/refs/heads/main/ip.txt)
+### 1\. Öffentliche Daten holen
 
-U_PK = fetch (https://raw.githubusercontent.com/{Server2}/web-msg-data/refs/heads/main/user/{User2}/pk.txt)
+    S_PK = fetch("https://raw.githubusercontent.com/ManuelWestermeier/web-msg-data/refs/heads/main/pk.txt")
+    S_IP = fetch("https://raw.githubusercontent.com/ManuelWestermeier/web-msg-data/refs/heads/main/ip.txt")
+    
+    U_PK = fetch("https://raw.githubusercontent.com/{Server2}/web-msg-data/refs/heads/main/user/{User2}/pk.txt")
+    
 
-### 2. Validate the data
+### 2\. Signaturen prüfen
 
-sign_check(S_PK, S_IP)
+    sign_check(S_PK, S_IP)
+    sign_check(S_PK, U_PK)
+    
 
-sign_check(S_PK, U_PK)
+### 3\. Nachricht konstruieren
 
-### 3. Construct the frame
+    SYM_K = random AES key
+    SYM_IV = random AES IV
+    RAW_DATA = "HELLO WORLD"
+    
+    ENC_MSG = AES_Encrypt(SYM_K, SYM_IV, RAW_DATA)
+    ENC_KEY = RSA_Encrypt(U_PK, SYM_K + SYM_IV)
+    NONCE = random 64-bit value
+    
+    // Proof of Work: SHA256 mit 10 führenden Nullen
+    while (true) {
+      HASH = SHA256(POCKET_DATA)
+      if (HASH.startsWith("0000000000")) break
+      NONCE = new_random()
+      update_nonce(NONCE)
+    }
+    
+    SIGN = Sign(Sender1.SK, HASH)
+    
 
-SYM_K = random AES Key
-SYM_IV = random AES iv
+**Finales POCKET (als JSON):**
 
-POCKET =
+    {
+      "from": "User1@Server1",
+      "to": "User2@Server2",
+      "enc_key": "<RSA verschlüsselt>",
+      "enc_msg": "<AES-verschlüsselt>",
+      "nonce": "<zufällig>",
+      "hash": "<SHA256>",
+      "sign": "<Digitale Signatur>"
+    }
+    
 
-```c
-User1@Server1 // from
-User2@Server2 // to
-U_PK(SYM_K+SYM_IV) // data en/decryption key
-SYM_K+SYM_IV(RAW_DATA) // the encrypted data
-RANDOM_ID // for the proof of work
-HASH // hash of pocket with 10 zeros on the front
-SIGN // sender.sk enc hash of entrie pocket
-```
+`SIGN` dient als Nachricht-ID und Replay-Schutz.
 
-### 4. Store frame
+### 4\. Nachricht speichern
 
-MESSAGE_USER = Server1 | Some other random Github Account
+    MESSAGE_USER = Server1 oder anderer GitHub-Account
+    STORE_URL = "https://raw.githubusercontent.com/{MESSAGE_USER}/web-msg-messages/refs/heads/main/{SIGN}.txt"
+    
+    upload(STORE_URL, POCKET)
+    POST("http://{S_IP}/send", body: "{Server1}|{SIGN}")
+    
 
-fetch store (https://raw.githubusercontent.com/{MESSAGE_USER}/web-msg-messages/refs/heads/main/{POCKET.SIGN}.txt, POCKET)
+* * *
 
-=> POST http://{S_IP}/send `{Server1}|{POCKET.SIGN}`
+RECEIVER\_SERVER\_SIDE
+----------------------
 
-## RECEIVER_SERVER_SIDE
+### 5\. Empfang & Validierung
 
-### 5. validate pocket
+    POCKET = fetch("https://raw.githubusercontent.com/{MESSAGE_USER}/web-msg-messages/refs/heads/main/{SIGN}.txt")
+    U_PK = fetch("https://raw.githubusercontent.com/{Server1}/web-msg-data/refs/heads/main/user/{User1}/pk.txt")
+    S_PK = fetch("https://raw.githubusercontent.com/{Server1}/web-msg-data/refs/heads/main/pk.txt")
+    
 
-has (`Server1 POCKET.SIGN`)
+#### Validierung:
 
-POCKET = fetch (https://raw.githubusercontent.com/{MESSAGE_USER}/web-msg-messages/refs/heads/main/{POCKET.SIGN}.txt)
+*   **Replay-Schutz:** SIGN darf nicht in `messages-list.txt` vorkommen.
+*   **Hash prüfen:** SHA256(POCKET) == hash
+*   **Proof of Work:** hash beginnt mit 10 Nullen
+*   **Signatur prüfen:** verify(U\_PK, SIGN, hash)
 
-U_PK = fetch (https://raw.githubusercontent.com/{Server1}/web-msg-data/refs/heads/main/user/{User1}/pk.txt)
+**Falls gültig:**
 
-(VALIDATE IT TOO (Server1.pk...))
+    append "Server1|{SIGN}" to:
+    https://raw.githubusercontent.com/{Server2}/web-msg-data/refs/heads/main/user/{User1}/messages-list.txt
+    
 
-VALIDATE THE PROOF OF WORK (
-HASH THE POCKET => CHECK 10 zeros on start
-)
+Optional: Push-Benachrichtigung senden.
 
-VALITADTE THE SIGN (
-HASH THE FULL POCKET => VALIDATE WITH SENDER PUBLIC KEY FROM U_PK
-)
+* * *
 
-if all is good append the pocket identifyer (`{Server1}|{POCKET.SIGN}`) to the messages list on (https://raw.githubusercontent.com/{Server2}/web-msg-data/refs/heads/main/user/{User1}/messages-list.txt) if the RANDOM_ID isn't in the list.
+RECEIVE\_CLIENT\_SIDE
+---------------------
 
-SEND THE CLIENT THE PUSH NOTIFYCATION
+### 6\. Nachrichten abrufen und entschlüsseln
 
-## RECEIVE_CLIENT_SIDE
+    messages = fetch(".../messages-list.txt")
+    
+    foreach (entry in messages) {
+      [sender, SIGN] = entry.split("|")
+      POCKET = fetch("https://raw.githubusercontent.com/{sender}/web-msg-messages/refs/heads/main/{SIGN}.txt")
+    
+      // Validieren & Entschlüsseln
+      validate(POCKET)
+      SYM_K, SYM_IV = RSA_Decrypt(User1.SK, POCKET.enc_key)
+      RAW = AES_Decrypt(SYM_K, SYM_IV, POCKET.enc_msg)
+    
+      display(RAW)
+    }
+    
 
-### 6. RECEAVE / Decrypt
+* * *
 
-READS ALL MESSAGES
+Eigenschaften
+-------------
 
-FOREACH:
+*   🔐 Ende-zu-Ende-Verschlüsselung (AES-256-GCM)
+*   🔏 Digitale Signaturen zur Senderverifikation
+*   🧠 Proof of Work mit SHA256(POCKET) → 10 führende Nullen
+*   🧱 Replay-Schutz durch SIGN-ID
+*   📦 Speicher über GitHub-Repositories
 
-VALIDATES THE POCKET.
+Sicherheitshinweise
+-------------------
 
-DECRYPTE THE POCKET.
-
-SHOW THE POCKET
+*   Alle Schlüssel und IPs müssen signiert und geprüft werden.
+*   GitHub ist öffentlich → alle Inhalte müssen verschlüsselt sein.
+*   Keine Zeitstempel → Reihenfolge von Nachrichten nicht garantiert.
+*   GitHub kann Caching verursachen → Verzögerungen möglich.
